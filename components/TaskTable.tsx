@@ -134,7 +134,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, users, currentUserEmail, o
             <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                     <tr>
-                        {headers.map(h => <SortableHeader key={h.hkey} hkey={h.hkey} label={h.label} />)}
+                        {/* FIX: Changed the key to use h.label to avoid potential type inference issues with using the same value for both key and a custom prop (hkey). */}
+                        {headers.map(h => <SortableHeader key={h.label} hkey={h.hkey} label={h.label} />)}
                         <th scope="col" className="relative px-6 py-3">
                             <span className="sr-only">Actions</span>
                         </th>

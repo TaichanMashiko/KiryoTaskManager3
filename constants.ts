@@ -1,9 +1,8 @@
-
 import { Priority, Status } from './types';
 
 export const GOOGLE_CLIENT_ID = '1008158953225-b1lc34t0l4kosnsdv5jbl87qfrj9q9nf.apps.googleusercontent.com';
 export const GOOGLE_API_KEY = 'AIzaSyAP01pTXo8mKPGUID407-gF7cE_EmX9ILY';
-export const SPREADSHEET_ID = '1IF4upVHvvfPWwC2FfTGIbTZGoxd_IZDQmR3DXlY76zY';
+export const SPREADSHEET_ID = '1cOTC9AH8JXpJF9zuVlsfZDVo-n7mFLj8F4VplVoCUD4';
 
 export const SHEET_NAMES = {
   TASKS: 'タスク',
@@ -38,4 +37,3 @@ export const STATUS_COLORS: { [key in Status]: { bg: string, text: string, borde
 };
 
 export const STATUS_ORDER = [Status.NotStarted, Status.InProgress, Status.Completed];
-   
