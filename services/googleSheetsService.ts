@@ -12,7 +12,7 @@ declare global {
 const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
 let tokenClient: any = null;
 
-export const initGoogleClient = (callback: (user: any) => void): Promise<void> => {
+export const initGoogleClient = (callback: (user: any | null) => void): Promise<void> => {
   return new Promise((resolve, reject) => {
     window.gapi.load('client', async () => {
       try {
@@ -28,15 +28,16 @@ export const initGoogleClient = (callback: (user: any) => void): Promise<void> =
             if (tokenResponse && tokenResponse.access_token) {
               const user = JSON.parse(atob(tokenResponse.access_token.split('.')[1]));
               callback(user);
-              resolve();
             } else {
-               reject(new Error('Authentication failed: No access token received.'));
+               console.log('Authentication failed: No access token received.');
+               callback(null);
             }
           },
         });
 
-        // This will automatically sign-in the user if they've previously granted access
-        // tokenClient.requestAccessToken({prompt: 'none'});
+        // Initialization is complete, resolve the promise so the app can proceed.
+        resolve();
+
       } catch (error) {
         reject(error);
       }
@@ -45,10 +46,10 @@ export const initGoogleClient = (callback: (user: any) => void): Promise<void> =
 };
 
 export const handleAuthClick = () => {
-  if (window.gapi.client.getToken() === null) {
+  if (tokenClient) {
       tokenClient.requestAccessToken({ prompt: 'consent' });
   } else {
-      tokenClient.requestAccessToken({ prompt: '' });
+      console.error("Auth client is not initialized.");
   }
 };
 
@@ -179,4 +180,3 @@ export const deleteTask = async (task: Task): Promise<any> => {
         },
     });
 };
-   

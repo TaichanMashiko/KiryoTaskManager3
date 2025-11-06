@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { Task, User, Category, GoogleUser, Status } from './types';
 import { initGoogleClient, handleAuthClick, handleSignOutClick, getTasks, getUsers, getCategories, updateTask, createTask, deleteTask } from './services/googleSheetsService';
 import { GOOGLE_CLIENT_ID } from './constants';
@@ -27,7 +28,7 @@ export default function App() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const loadData = useCallback(async () => {
-    setIsLoading(true);
+    // Note: setIsLoading(true) is called by the login handler before this.
     setError(null);
     try {
       const [tasksData, usersData, categoriesData] = await Promise.all([
@@ -51,27 +52,42 @@ export default function App() {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
+    
+    const handleLoginCallback = async (googleUser: GoogleUser | null) => {
+      if (googleUser) {
+        const profile = {
+          email: googleUser.email,
+          name: googleUser.name,
+          picture: googleUser.picture,
+        };
+        setUser(profile);
+        setIsLoading(true); // Start loading data
+        await loadData();
+      } else {
+          setUser(null);
+          setIsLoading(false); // Ensure loading stops if login fails
+      }
+    };
+
     script.onload = () => {
-      initGoogleClient(async (googleUser) => {
-        if (googleUser) {
-          const profile = {
-            email: googleUser.email,
-            name: googleUser.name,
-            picture: googleUser.picture,
-          };
-          setUser(profile);
-          await loadData();
-        } else {
-            setUser(null);
-        }
-        setIsAuthReady(true);
-      }).catch(err => {
-         console.error("Auth init error:", err);
-         setError("認証の初期化に失敗しました。");
-         setIsAuthReady(true);
-      });
+      initGoogleClient(handleLoginCallback)
+        .then(() => {
+          // Google Client is ready. The app can now show the login button.
+          setIsAuthReady(true);
+          setIsLoading(false); // Stop the initial auth loading spinner.
+        })
+        .catch(err => {
+           console.error("Auth init error:", err);
+           setError("認証の初期化に失敗しました。");
+           setIsAuthReady(true); // Still "ready", but in an error state.
+           setIsLoading(false);
+        });
     };
     document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    }
   }, [loadData]);
 
   const handleSignOut = () => {
@@ -142,6 +158,7 @@ export default function App() {
   };
 
   const renderView = () => {
+    if (!user) return null; // Should not happen if called correctly, but for type safety
     switch(viewMode) {
       case 'table':
         return <TaskTable tasks={tasks} users={users} currentUserEmail={user.email} onEdit={handleOpenModal} onDelete={handleDeleteTask} />;

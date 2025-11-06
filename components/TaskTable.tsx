@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Task, User, Priority, Status } from '../types';
 import { PRIORITY_COLORS } from '../constants';
@@ -83,7 +84,8 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, users, currentUserEmail, o
       { hkey: 'updatedDate', label: '更新日' },
   ];
 
-  const SortableHeader = ({ hkey, label }: SortableHeaderProps) => (
+  // FIX: Typed SortableHeader as a React.FC to allow TypeScript to correctly handle the `key` prop.
+  const SortableHeader: React.FC<SortableHeaderProps> = ({ hkey, label }) => (
     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer" onClick={() => handleSort(hkey)}>
       <div className="flex items-center">
         {label}
