@@ -1,0 +1,5 @@
+{
+  "name": "KiryoTaskManager",
+  "description": "A web-based task management application for teams that uses Google Sheets as a database. It features task management with table and Kanban views, filtering, sorting, and Google Account authentication.",
+  "requestFramePermissions": []
+}
