@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-const SCOPES = 'https://www.googleapis.com/auth/spreadsheets';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
 let tokenClient: any = null;
 
 export const initGoogleClient = (callback: (user: any | null) => void): Promise<void> => {
@@ -24,12 +24,35 @@ export const initGoogleClient = (callback: (user: any | null) => void): Promise<
         tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: GOOGLE_CLIENT_ID,
           scope: SCOPES,
-          callback: (tokenResponse: any) => {
+          callback: async (tokenResponse: any) => {
             if (tokenResponse && tokenResponse.access_token) {
-              const user = JSON.parse(atob(tokenResponse.access_token.split('.')[1]));
-              callback(user);
+              // Set the token for gapi client to use for subsequent API calls
+              window.gapi.client.setToken(tokenResponse);
+              
+              try {
+                // Fetch user info from the userinfo endpoint for a robust profile retrieval
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: {
+                    'Authorization': `Bearer ${tokenResponse.access_token}`
+                  }
+                });
+
+                if (!userInfoResponse.ok) {
+                   const errorBody = await userInfoResponse.text();
+                   console.error('Failed to fetch user info:', userInfoResponse.status, errorBody);
+                   throw new Error('Failed to fetch user info');
+                }
+                
+                const user = await userInfoResponse.json();
+                callback(user); // Pass full user profile to the app
+                
+              } catch (error) {
+                console.error('Error fetching user info:', error);
+                callback(null);
+              }
             } else {
-               console.log('Authentication failed: No access token received.');
+               const errorMessage = tokenResponse?.error ? `${tokenResponse.error}: ${tokenResponse.error_description}` : 'Authentication failed: No access token received.';
+               console.error(errorMessage);
                callback(null);
             }
           },
